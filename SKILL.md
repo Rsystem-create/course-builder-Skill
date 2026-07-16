@@ -19,7 +19,7 @@ Generate structurally identical self-study tutorials for any technical topic. **
 | `format` | `md` / `md+html` | `md` | Markdown only, or additionally generate HTML |
 
 - A language/format the user explicitly requests **in the current message** overrides config.json (e.g. "write it in Chinese", "I want an HTML version").
-- If config.json or a field is missing, use the defaults above; merge.py / to_html.py read it themselves too.
+- If config.json or a field is missing, use the defaults above; to_md.py / to_html.py read it themselves too.
 - When the user states a **long-term preference** ("default to Chinese from now on"), update config.json itself, not just this run.
 
 ## Deliverables (the four-piece set)
@@ -40,7 +40,7 @@ Generate structurally identical self-study tutorials for any technical topic. **
 2. **Present the outline first and wait for user approval before writing.** The outline lists each chapter title plus a one-sentence description. The user may change direction (e.g. "generic Linux" → "server ops") — rewrite the outline for the new direction and ask for approval again.
 3. Write `docs/01..NN` (save each chapter as soon as it's done; don't batch).
 4. Write `exercises/01..NN` (same numbers and topic words as docs).
-5. Generate the two merged files with `scripts/merge.py`; also run `to_html.py` if the format calls for it.
+5. Generate the two merged files with `scripts/to_md.py`; also run `to_html.py` if the format calls for it.
 6. Verify (below), then report: file tree + chapter table + how the style rules were honored.
 
 ## Outline rules
@@ -78,7 +78,7 @@ Generate structurally identical self-study tutorials for any technical topic. **
 
 1. Run the bundled scripts with absolute paths (never rely on cwd; `--lang` omitted = scripts read config.json themselves):
    ```bash
-   python3 <skill dir>/scripts/merge.py /abs/path/to/<topic> <topic> [book title] [--lang en|zh]
+   python3 <skill dir>/scripts/to_md.py /abs/path/to/<topic> <topic> [book title] [--lang en|zh]
    ```
    The third argument is optional, for when the book title differs from the default (e.g. Linux titled "Linux 服务器运维完整教程").
 2. When HTML is wanted, also run (same arguments):
@@ -105,7 +105,7 @@ Generate structurally identical self-study tutorials for any technical topic. **
 
 - Counting anchors with grep requires `-a`: md files containing CJK are treated as binary.
 - Hard-code absolute paths when running scripts; the Bash tool's cwd persists across calls and relative paths have caused failures.
-- Temp scripts go in the session scratchpad, never the user's project (this skill's merge.py / to_html.py are official scripts — the exception).
+- Temp scripts go in the session scratchpad, never the user's project (this skill's to_md.py / to_html.py are official scripts — the exception).
 - Resuming an interrupted session: first check which files already exist, continue from the break point, never redo finished chapters.
 
 ---
@@ -126,7 +126,7 @@ Generate structurally identical self-study tutorials for any technical topic. **
 | `format` | `md` / `md+html` | `md` | 只出 Markdown，或额外生成 HTML |
 
 - 用户在**本次请求里**明确指定的语言/格式优先于 config.json（如「用中文写」「要 HTML 版」）。
-- config.json 缺失或字段缺失时按上表默认值处理；merge.py / to_html.py 也会自己读它。
+- config.json 缺失或字段缺失时按上表默认值处理；to_md.py / to_html.py 也会自己读它。
 - 用户表达**长期偏好**（如「以后默认中文」）时，更新 config.json 本身，而不是只改本次。
 
 ## 产出物（四件套）
@@ -147,7 +147,7 @@ Generate structurally identical self-study tutorials for any technical topic. **
 2. **先给大纲，等用户批准才动笔。** 大纲列出每章标题和一句话内容说明。用户可能修改方向（例如把「通用 Linux」改成「服务器运维」）——按新方向重写大纲再次征求批准。
 3. 写 `docs/01..NN`（每写完一章即保存，不攒批）。
 4. 写 `exercises/01..NN`（文件名与 docs 同序号同主题词）。
-5. 用 `scripts/merge.py` 生成两个合并单文件；按格式偏好决定是否再跑 `to_html.py`。
+5. 用 `scripts/to_md.py` 生成两个合并单文件；按格式偏好决定是否再跑 `to_html.py`。
 6. 验证（见下），然后向用户报告：文件树 + 章节表 + 风格规矩如何落实。
 
 ## 大纲规则
@@ -185,10 +185,10 @@ Generate structurally identical self-study tutorials for any technical topic. **
 
 1. 运行本技能自带脚本（脚本内用绝对路径，不依赖 cwd；`--lang` 缺省时脚本自己读 config.json）：
    ```bash
-   python3 <本技能目录>/scripts/merge.py /abs/path/to/<主题> <主题> [教程大标题] [--lang en|zh]
+   python3 <本技能目录>/scripts/to_md.py /abs/path/to/<主题> <主题> [教程大标题] [--lang en|zh]
    ```
    第三个参数可选，用于大标题与默认标题不同的情况（如 Linux 的大标题是「Linux 服务器运维完整教程」）。
-2. 需要 HTML 时再跑（参数同 merge.py）：
+2. 需要 HTML 时再跑（参数同 to_md.py）：
    ```bash
    python3 <本技能目录>/scripts/to_html.py /abs/path/to/<主题> <主题> [教程大标题] [--lang en|zh]
    ```
@@ -212,5 +212,5 @@ Generate structurally identical self-study tutorials for any technical topic. **
 
 - `grep` 数锚点必须 `-a`：含 CJK 的 md 会被当成二进制文件。
 - 合并脚本里写死绝对路径；Bash 工具的 cwd 在多次调用间持续存在，靠相对路径曾出过错。
-- 临时脚本放会话 scratchpad，不留在用户项目目录里（本技能的 merge.py / to_html.py 是正式脚本，例外）。
+- 临时脚本放会话 scratchpad，不留在用户项目目录里（本技能的 to_md.py / to_html.py 是正式脚本，例外）。
 - 会话被打断后续写时，先确认哪些文件已存在，从断点继续，不重做已完成的章。

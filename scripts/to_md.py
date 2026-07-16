@@ -2,15 +2,15 @@
 """Merge docs/ and exercises/ into two single files with TOC anchors.
 
 Usage:
-    python3 merge.py /abs/path/to/<topic> <topic> [book title] [--lang en|zh]
+    python3 to_md.py /abs/path/to/<topic> <topic> [book title] [--lang en|zh]
 
 Language defaults to "language" in <skill root>/config.json (falls back
 to en). Output file names and headings follow the chosen language.
 
 Examples:
-    python3 merge.py ~/Study/Docker Docker
-    python3 merge.py ~/Study/Linux Linux "Linux Server Ops: The Complete Tutorial"
-    python3 merge.py ~/Study/Linux Linux "Linux 服务器运维完整教程" --lang zh
+    python3 to_md.py ~/Study/Docker Docker
+    python3 to_md.py ~/Study/Linux Linux "Linux Server Ops: The Complete Tutorial"
+    python3 to_md.py ~/Study/Linux Linux "Linux 服务器运维完整教程" --lang zh
 """
 import glob
 import json

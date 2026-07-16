@@ -20,7 +20,7 @@ import re
 import shutil
 import sys
 
-from merge import STRINGS, chapters, cli, exercise_label
+from to_md import STRINGS, chapters, cli, exercise_label
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CSS_NAME = "style.css"
