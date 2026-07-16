@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
-"""Merge docs/ and exercises/ into two single files with TOC anchors.
+"""Merge docs/ and exercises/ into the final Markdown deliverable(s).
+
+Two organizations:
+    integrated  one tutor book: ch1, its exercises, ch2, its exercises, ... (default)
+    separated   two files: full tutorial + full exercise book
 
 Usage:
-    python3 to_md.py /abs/path/to/<topic> <topic> [book title] [--lang en|zh]
+    python3 to_md.py /abs/path/to/<topic> <topic> [book title]
+                     [--lang en|zh] [--mode integrated|separated]
 
-Language defaults to "language" in <skill root>/config.json (falls back
-to en). Output file names and headings follow the chosen language.
+--lang / --mode default to "language" / "organization" in
+<skill root>/config.json (falling back to en / integrated when unset).
+Output file names and headings follow the chosen language.
 
 Examples:
     python3 to_md.py ~/Study/Docker Docker
-    python3 to_md.py ~/Study/Linux Linux "Linux Server Ops: The Complete Tutorial"
+    python3 to_md.py ~/Study/Docker Docker --mode separated
     python3 to_md.py ~/Study/Linux Linux "Linux 服务器运维完整教程" --lang zh
 """
 import glob
@@ -21,12 +27,17 @@ import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(os.path.dirname(SCRIPT_DIR), "config.json")
 
+MODES = ("integrated", "separated")
+
 # Per-language file names, titles and UI strings ({topic} is substituted).
 STRINGS = {
     "en": {
         "html_lang": "en",
         "toc": "Contents",
         "top_link": "↑ Back to contents",
+        "ex_link": "Exercises",
+        "book_file": "{topic}-book",
+        "book_title": "{topic} Tutorial",
         "tutorial_file": "{topic}-tutorial",
         "exercises_file": "{topic}-exercises",
         "tutorial_title": "{topic} Complete Tutorial",
@@ -36,6 +47,9 @@ STRINGS = {
         "html_lang": "zh-CN",
         "toc": "目录",
         "top_link": "↑ 返回目录",
+        "ex_link": "练习",
+        "book_file": "{topic}教程",
+        "book_title": "{topic} 教程",
         "tutorial_file": "{topic}完整教程",
         "exercises_file": "{topic}练习完整版",
         "tutorial_title": "{topic} 完整教程",
@@ -44,36 +58,51 @@ STRINGS = {
 }
 
 
-def default_lang():
-    """Read the default language from config.json; fall back to en."""
+def _config():
+    """Read config.json; missing/broken file just means no preferences."""
     try:
         with open(CONFIG_PATH, encoding="utf-8") as f:
-            lang = json.load(f).get("language", "en")
-        return lang if lang in STRINGS else "en"
+            return json.load(f)
     except (OSError, ValueError):
-        return "en"
+        return {}
+
+
+def default_lang():
+    lang = _config().get("language")
+    return lang if lang in STRINGS else "en"
+
+
+def default_mode():
+    mode = _config().get("organization")
+    return mode if mode in MODES else "integrated"
 
 
 def cli(argv, usage):
-    """Parse the shared CLI: BASE TOPIC [TITLE] [--lang en|zh]."""
+    """Parse the shared CLI: BASE TOPIC [TITLE] [--lang ...] [--mode ...]."""
     args = list(argv)
-    lang = None
-    if "--lang" in args:
-        i = args.index("--lang")
-        if i + 1 >= len(args):
-            sys.exit("error: --lang requires an argument (en|zh)")
-        lang = args[i + 1]
-        del args[i:i + 2]
-    if lang is None:
-        lang = default_lang()
-    if lang not in STRINGS:
-        sys.exit(f"error: unsupported language {lang!r} (supported: {', '.join(STRINGS)})")
+
+    def option(flag, allowed, default):
+        if flag not in args:
+            value = default()
+        else:
+            i = args.index(flag)
+            if i + 1 >= len(args):
+                sys.exit(f"error: {flag} requires an argument ({'|'.join(allowed)})")
+            value = args[i + 1]
+            del args[i:i + 2]
+        if value not in allowed:
+            sys.exit(f"error: unsupported {flag.lstrip('-')} {value!r} "
+                     f"(supported: {', '.join(allowed)})")
+        return value
+
+    lang = option("--lang", tuple(STRINGS), default_lang)
+    mode = option("--mode", MODES, default_mode)
     if len(args) < 2:
         sys.exit(usage)
     base = os.path.abspath(os.path.expanduser(args[0]))
     topic = args[1]
     title = args[2] if len(args) > 2 else None
-    return base, topic, title, lang
+    return base, topic, title, lang, mode
 
 
 def exercise_label(title, lang):
@@ -98,6 +127,17 @@ def chapters(folder):
     return result
 
 
+def paired(base):
+    """Docs and exercises chapters, checked to line up one-to-one."""
+    docs = chapters(os.path.join(base, "docs"))
+    exs = chapters(os.path.join(base, "exercises"))
+    if not docs:
+        sys.exit(f"error: no chapter files found in {os.path.join(base, 'docs')}")
+    if len(docs) != len(exs):
+        sys.exit(f"error: {len(docs)} docs chapters but {len(exs)} exercise chapters")
+    return docs, exs
+
+
 def build(folder, out_path, book_title, label, s):
     chs = chapters(folder)
     if not chs:
@@ -112,9 +152,33 @@ def build(folder, out_path, book_title, label, s):
     print(f"wrote {out_path} with {len(chs)} chapters")
 
 
+def build_book(base, out_path, book_title, s):
+    """Integrated tutor book: each chapter immediately followed by its exercises."""
+    docs, exs = paired(base)
+    toc = "\n".join(
+        f"- [{t}](#ch{i:02d}) · [{s['ex_link']}](#ex{i:02d})" for i, t, _ in docs
+    )
+    body = "\n\n---\n\n".join(
+        f'<a id="ch{i:02d}"></a>\n\n{doc}\n\n<a id="ex{i:02d}"></a>\n\n{ex}'
+        for (i, _, doc), (_, _, ex) in zip(docs, exs)
+    )
+    content = f"# {book_title}\n\n## {s['toc']}\n\n{toc}\n\n---\n\n{body}\n"
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(content)
+    print(f"wrote {out_path} with {len(docs)} chapters + exercises")
+
+
 def main():
-    base, topic, title, lang = cli(sys.argv[1:], __doc__)
+    base, topic, title, lang, mode = cli(sys.argv[1:], __doc__)
     s = STRINGS[lang]
+    if mode == "integrated":
+        build_book(
+            base,
+            os.path.join(base, s["book_file"].format(topic=topic) + ".md"),
+            title or s["book_title"].format(topic=topic),
+            s,
+        )
+        return
     build(
         os.path.join(base, "docs"),
         os.path.join(base, s["tutorial_file"].format(topic=topic) + ".md"),

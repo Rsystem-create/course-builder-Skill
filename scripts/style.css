@@ -73,6 +73,15 @@ nav.toc li { margin: .25em 0; }
 
 .top-link { font-size: .85em; display: inline-block; margin-top: 1.5em; }
 
+/* 交错模式（integrated）里紧跟每章正文的练习区块 */
+section.exercises {
+  background: rgba(175, 184, 193, .08);
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  padding: .5em 1.5em 1em;
+  margin: 2em 0;
+}
+
 @media (prefers-color-scheme: dark) {
   body { background: #0d1117; color: #e6edf3; }
   h1, h2 { border-color: #30363d; }
@@ -81,5 +90,6 @@ nav.toc li { margin: .25em 0; }
   blockquote { color: #8b949e; border-color: #30363d; }
   th, td { border-color: #30363d; }
   nav.toc { border-color: #30363d; }
+  section.exercises { border-color: #30363d; }
   hr { border-color: #30363d; }
 }

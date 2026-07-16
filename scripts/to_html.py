@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
-"""Render docs/ and exercises/ as two HTML single files (external style.css).
+"""Render docs/ and exercises/ as the final HTML deliverable(s) (external style.css).
+
+Two organizations:
+    integrated  one tutor-book HTML: ch1, its exercises, ch2, ... (default)
+    separated   two HTML files: full tutorial + full exercise book
 
 Usage:
-    python3 to_html.py /abs/path/to/<topic> <topic> [book title] [--lang en|zh]
+    python3 to_html.py /abs/path/to/<topic> <topic> [book title]
+                       [--lang en|zh] [--mode integrated|separated]
 
-Writes the two merged HTML files and copies style.css from this
-directory into <topic>/; the HTML references it via <link>.
-Language defaults to "language" in <skill root>/config.json.
-Standard library only; Markdown coverage matches this skill's
-chapter format contract.
+Writes the HTML file(s) and copies style.css from this directory into
+<topic>/; the HTML references it via <link>. --lang / --mode default to
+config.json ("language" / "organization"). Standard library only;
+Markdown coverage matches this skill's chapter format contract.
 
 Examples:
     python3 to_html.py ~/Study/Docker Docker
+    python3 to_html.py ~/Study/Docker Docker --mode separated
     python3 to_html.py ~/Study/Linux Linux "Linux 服务器运维完整教程" --lang zh
 """
 import html
@@ -20,7 +25,7 @@ import re
 import shutil
 import sys
 
-from to_md import STRINGS, chapters, cli, exercise_label
+from to_md import STRINGS, chapters, cli, exercise_label, paired
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CSS_NAME = "style.css"
@@ -148,6 +153,19 @@ def md_to_html(md):
     return "\n".join(out)
 
 
+def _document(book_title, toc, sections, s):
+    """完整 HTML 页面骨架：标题 + 目录卡片 + 各章节。"""
+    return (
+        f'<!DOCTYPE html>\n<html lang="{s["html_lang"]}">\n<head>\n<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        f"<title>{html.escape(book_title)}</title>\n"
+        f'<link rel="stylesheet" href="{CSS_NAME}">\n</head>\n<body>\n<main>\n'
+        f'<h1 id="top">{html.escape(book_title)}</h1>\n'
+        f'<nav class="toc">\n<h2>{s["toc"]}</h2>\n<ol>\n{toc}\n</ol>\n</nav>\n<hr>\n'
+        f"{sections}\n</main>\n</body>\n</html>\n"
+    )
+
+
 def build_html(folder, out_path, book_title, label, s):
     chs = chapters(folder)
     if not chs:
@@ -160,37 +178,55 @@ def build_html(folder, out_path, book_title, label, s):
         f'<a class="top-link" href="#top">{s["top_link"]}</a>\n</section>'
         for i, _, text in chs
     )
-    doc = (
-        f'<!DOCTYPE html>\n<html lang="{s["html_lang"]}">\n<head>\n<meta charset="utf-8">\n'
-        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-        f"<title>{html.escape(book_title)}</title>\n"
-        f'<link rel="stylesheet" href="{CSS_NAME}">\n</head>\n<body>\n<main>\n'
-        f'<h1 id="top">{html.escape(book_title)}</h1>\n'
-        f'<nav class="toc">\n<h2>{s["toc"]}</h2>\n<ol>\n{toc}\n</ol>\n</nav>\n<hr>\n'
-        f"{sections}\n</main>\n</body>\n</html>\n"
-    )
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write(doc)
+        f.write(_document(book_title, toc, sections, s))
     print(f"wrote {out_path} with {len(chs)} chapters")
 
 
+def build_book_html(base, out_path, book_title, s):
+    """交错模式：每章正文后紧跟对应练习（含答案），合成一本教程全书。"""
+    docs, exs = paired(base)
+    toc = "\n".join(
+        f'<li><a href="#ch{i:02d}">{html.escape(t)}</a> · '
+        f'<a href="#ex{i:02d}">{s["ex_link"]}</a></li>'
+        for i, t, _ in docs
+    )
+    sections = "\n<hr>\n".join(
+        f'<section id="ch{i:02d}">\n{md_to_html(doc)}\n</section>\n'
+        f'<section id="ex{i:02d}" class="exercises">\n{md_to_html(ex)}\n'
+        f'<a class="top-link" href="#top">{s["top_link"]}</a>\n</section>'
+        for (i, _, doc), (_, _, ex) in zip(docs, exs)
+    )
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(_document(book_title, toc, sections, s))
+    print(f"wrote {out_path} with {len(docs)} chapters + exercises")
+
+
 def main():
-    base, topic, title, lang = cli(sys.argv[1:], __doc__)
+    base, topic, title, lang, mode = cli(sys.argv[1:], __doc__)
     s = STRINGS[lang]
-    build_html(
-        os.path.join(base, "docs"),
-        os.path.join(base, s["tutorial_file"].format(topic=topic) + ".html"),
-        title or s["tutorial_title"].format(topic=topic),
-        lambda t: t,
-        s,
-    )
-    build_html(
-        os.path.join(base, "exercises"),
-        os.path.join(base, s["exercises_file"].format(topic=topic) + ".html"),
-        s["exercises_title"].format(topic=topic),
-        lambda t: exercise_label(t, lang),
-        s,
-    )
+    if mode == "integrated":
+        build_book_html(
+            base,
+            os.path.join(base, s["book_file"].format(topic=topic) + ".html"),
+            title or s["book_title"].format(topic=topic),
+            s,
+        )
+    else:
+        build_html(
+            os.path.join(base, "docs"),
+            os.path.join(base, s["tutorial_file"].format(topic=topic) + ".html"),
+            title or s["tutorial_title"].format(topic=topic),
+            lambda t: t,
+            s,
+        )
+        build_html(
+            os.path.join(base, "exercises"),
+            os.path.join(base, s["exercises_file"].format(topic=topic) + ".html"),
+            s["exercises_title"].format(topic=topic),
+            lambda t: exercise_label(t, lang),
+            s,
+        )
     shutil.copy(os.path.join(SCRIPT_DIR, CSS_NAME), os.path.join(base, CSS_NAME))
     print(f"copied {CSS_NAME} -> {base}")
 
