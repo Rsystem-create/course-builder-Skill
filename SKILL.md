@@ -51,22 +51,24 @@ Everything goes into `./<topic>/`. What remains there depends on the options:
 1. **Resolve the four options** using the table above; if the request states a lasting preference, update config.json first.
 2. **Present the confirmation form and wait for explicit approval. Nothing is written before the user says OK.** Exact shape — options as a bulleted list, outline as a table:
 
-   > **\<Book title\>**
-   > - language: en|zh
-   > - format: md|html
-   > - folder: yes|no
-   > - organization: integrated|separated
-   >
-   > outline:
-   >
-   > | # | Chapter | Description |
-   > |---|---------|-------------|
-   > | 1 | \<Chapter title\> | \<one-sentence description\> |
-   > | 2 | … | … |
-   >
-   > [confirm/reject/modify]
+   ```
+   **<Book title>**
+   - language: en|zh
+   - format: md|html
+   - folder: yes|no
+   - organization: integrated|separated
 
-   The form ends with the literal line `[confirm/reject/modify]` — written plain text, **no pop-up question tool**, no closing sentences, no explanations. The form is the whole message; the user replies with their choice (and what to change, for modify).
+   outline:
+
+   | # | Chapter | Description |
+   |---|---------|-------------|
+   | 1 | <Chapter title> | <one-sentence description> |
+   | 2 | … | … |
+
+   [confirm/reject/modify]
+   ```
+
+   Emit the form as **top-level plain markdown** — never inside a blockquote, code fence, or indentation — so the outline renders as a **real table**, not raw `|` pipes. The form ends with the literal line `[confirm/reject/modify]` — written plain text, **no pop-up question tool**, no closing sentences, no explanations. The form is the whole message; the user replies with their choice (and what to change, for modify).
 
    The book title must be **serious and factual — never boastful**: no "Master", "Ultimate", "Complete Guide", 「从入门到精通」「速成」 or similar hype. Default is simply "\<Topic\> Tutorial" / 「\<主题\> 教程」.
 
@@ -194,22 +196,24 @@ Everything goes into `./<topic>/`. What remains there depends on the options:
 1. **按上表解析四个选项**；若本次请求表达了长期偏好，先更新 config.json。
 2. **给出确认单，等用户明确批准。用户说 OK 之前不写任何文件。** 格式固定——选项用带点的列表，大纲用表格：
 
-   > **\<教程大标题\>**
-   > - language: en|zh
-   > - format: md|html
-   > - folder: yes|no
-   > - organization: integrated|separated
-   >
-   > outline:
-   >
-   > | # | 章标题 | 一句话说明 |
-   > |---|--------|------------|
-   > | 1 | \<章标题\> | \<一句话说明\> |
-   > | 2 | …… | …… |
-   >
-   > [confirm/reject/modify]
+   ```
+   **<教程大标题>**
+   - language: en|zh
+   - format: md|html
+   - folder: yes|no
+   - organization: integrated|separated
 
-   确认单以字面一行 `[confirm/reject/modify]` 结尾——直接写在回复里，**不用弹出式提问工具**，不写收尾长句、不解释。单子就是整条消息；用户直接回复选择（modify 时附上要改什么）。
+   outline:
+
+   | # | 章标题 | 一句话说明 |
+   |---|--------|------------|
+   | 1 | <章标题> | <一句话说明> |
+   | 2 | …… | …… |
+
+   [confirm/reject/modify]
+   ```
+
+   确认单必须以**顶层普通 markdown** 输出——绝不放进引用块、代码块或缩进里——这样大纲才会渲染成**真正的表格**，而不是一堆裸 `|` 竖线。单子以字面一行 `[confirm/reject/modify]` 结尾——直接写在回复里，**不用弹出式提问工具**，不写收尾长句、不解释。单子就是整条消息；用户直接回复选择（modify 时附上要改什么）。
 
    大标题必须**严肃、如实，绝不夸口**：不用 "Master"、"Ultimate"、「从入门到精通」「速成」「终极指南」之类的营销词。默认就是「\<主题\> 教程」/ "\<Topic\> Tutorial"。
 

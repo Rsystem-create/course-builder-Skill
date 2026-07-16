@@ -68,21 +68,23 @@ The workflow is fixed:
 1. Claude resolves the four options (request → config.json → defaults).
 2. It presents a **confirmation form** — title, the four options, and the chapter outline — and waits for your approval. This form is the final gate: any change, however small, means the form is shown again before anything is written.
 
-   > **Docker Tutorial**
-   > - language: en
-   > - format: md
-   > - folder: no
-   > - organization: integrated
-   >
-   > outline:
-   >
-   > | # | Chapter | Description |
-   > |---|---------|-------------|
-   > | 1 | Chapter 1: … | … |
-   >
-   > [confirm/reject/modify]
+   ```
+   **Docker Tutorial**
+   - language: en
+   - format: md
+   - folder: no
+   - organization: integrated
 
-   The form ends with the literal `[confirm/reject/modify]` line; you reply with your choice.
+   outline:
+
+   | # | Chapter | Description |
+   |---|---------|-------------|
+   | 1 | Chapter 1: … | … |
+
+   [confirm/reject/modify]
+   ```
+
+   The form is plain top-level markdown, so the outline renders as a real table; it ends with the literal `[confirm/reject/modify]` line and you reply with your choice.
 3. It writes the chapter sources — in reading order for `integrated` (`docs/01`, `exercises/01`, `docs/02`, …), or all docs then all exercises for `separated`.
 4. It runs `scripts/to_md.py` (or `to_html.py` for HTML) and self-checks anchor counts.
 5. If `folder: no`, the source folders are removed after verification; then it reports the file tree and chapter table.
@@ -182,21 +184,23 @@ cp -r course-builder .claude/skills/
 1. Claude 解析四个选项（本次请求 → config.json → 默认值）。
 2. 给出**确认单**——大标题、四个选项、章节大纲——等你批准。确认单是最后一道关口：单子上任何内容变化（再小也算）都会重新出示，批准后才动笔。
 
-   > **Docker 教程**
-   > - language: zh
-   > - format: md
-   > - folder: no
-   > - organization: integrated
-   >
-   > outline:
-   >
-   > | # | 章标题 | 一句话说明 |
-   > |---|--------|------------|
-   > | 1 | 第一章：…… | …… |
-   >
-   > [confirm/reject/modify]
+   ```
+   **Docker 教程**
+   - language: zh
+   - format: md
+   - folder: no
+   - organization: integrated
 
-   确认单以字面一行 `[confirm/reject/modify]` 结尾；你直接回复你的选择即可。
+   outline:
+
+   | # | 章标题 | 一句话说明 |
+   |---|--------|------------|
+   | 1 | 第一章：…… | …… |
+
+   [confirm/reject/modify]
+   ```
+
+   确认单是顶层普通 markdown，大纲会渲染成真正的表格；单子以字面一行 `[confirm/reject/modify]` 结尾，你直接回复你的选择即可。
 3. 写按章源文件——`integrated` 按阅读顺序交错（`docs/01`、`exercises/01`、`docs/02`……），`separated` 则先写完全部 docs 再写全部 exercises。
 4. 运行 `scripts/to_md.py`（HTML 则 `to_html.py`）并自检锚点数。
 5. `folder: no` 时验证通过后删除源目录；最后报告文件树和章节表。
