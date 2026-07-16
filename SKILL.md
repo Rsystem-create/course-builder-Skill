@@ -63,8 +63,10 @@ Everything goes into `./<topic>/`. What remains there depends on the options:
    > |---|---------|-------------|
    > | 1 | \<Chapter title\> | \<one-sentence description\> |
    > | 2 | … | … |
+   >
+   > [confirm/reject/modify]
 
-   Right after showing the form, **ask for the decision with the AskUserQuestion tool** — a real selectable question, not a written-out sentence. Options exactly: `confirm` / `reject` / `modify` (the user can attach what to change via the free-text "Other"/notes). No closing sentences, no explanations — the form, then the question.
+   The form ends with the literal line `[confirm/reject/modify]` — written plain text, **no pop-up question tool**, no closing sentences, no explanations. The form is the whole message; the user replies with their choice (and what to change, for modify).
 
    The book title must be **serious and factual — never boastful**: no "Master", "Ultimate", "Complete Guide", 「从入门到精通」「速成」 or similar hype. Default is simply "\<Topic\> Tutorial" / 「\<主题\> 教程」.
 
@@ -204,8 +206,10 @@ Everything goes into `./<topic>/`. What remains there depends on the options:
    > |---|--------|------------|
    > | 1 | \<章标题\> | \<一句话说明\> |
    > | 2 | …… | …… |
+   >
+   > [confirm/reject/modify]
 
-   出示确认单后，**立即用 AskUserQuestion 工具提问**——真正的可选项提问，不是写在回复里的句子。选项固定为：`confirm` / `reject` / `modify`（用户可通过 "Other"/备注 附上要改什么）。不写收尾长句、不解释——单子之后就是提问。
+   确认单以字面一行 `[confirm/reject/modify]` 结尾——直接写在回复里，**不用弹出式提问工具**，不写收尾长句、不解释。单子就是整条消息；用户直接回复选择（modify 时附上要改什么）。
 
    大标题必须**严肃、如实，绝不夸口**：不用 "Master"、"Ultimate"、「从入门到精通」「速成」「终极指南」之类的营销词。默认就是「\<主题\> 教程」/ "\<Topic\> Tutorial"。
 

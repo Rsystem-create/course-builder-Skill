@@ -79,8 +79,10 @@ The workflow is fixed:
    > | # | Chapter | Description |
    > |---|---------|-------------|
    > | 1 | Chapter 1: … | … |
+   >
+   > [confirm/reject/modify]
 
-   followed by a real selectable question: `confirm` / `reject` / `modify`.
+   The form ends with the literal `[confirm/reject/modify]` line; you reply with your choice.
 3. It writes the chapter sources — in reading order for `integrated` (`docs/01`, `exercises/01`, `docs/02`, …), or all docs then all exercises for `separated`.
 4. It runs `scripts/to_md.py` (or `to_html.py` for HTML) and self-checks anchor counts.
 5. If `folder: no`, the source folders are removed after verification; then it reports the file tree and chapter table.
@@ -191,8 +193,10 @@ cp -r course-builder .claude/skills/
    > | # | 章标题 | 一句话说明 |
    > |---|--------|------------|
    > | 1 | 第一章：…… | …… |
+   >
+   > [confirm/reject/modify]
 
-   随后弹出真正的可选项提问：`confirm` / `reject` / `modify`。
+   确认单以字面一行 `[confirm/reject/modify]` 结尾；你直接回复你的选择即可。
 3. 写按章源文件——`integrated` 按阅读顺序交错（`docs/01`、`exercises/01`、`docs/02`……），`separated` 则先写完全部 docs 再写全部 exercises。
 4. 运行 `scripts/to_md.py`（HTML 则 `to_html.py`）并自检锚点数。
 5. `folder: no` 时验证通过后删除源目录；最后报告文件树和章节表。
